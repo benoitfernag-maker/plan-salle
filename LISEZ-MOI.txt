@@ -1,0 +1,33 @@
+PLAN SALLE : deux applis pour iPhone (Plan Lui, Plan Elle)
+==========================================================
+
+En ligne sur GitHub Pages :
+  Accueil    https://benoitfernag-maker.github.io/plan-salle/
+  Plan Lui   https://benoitfernag-maker.github.io/plan-salle/lui/
+  Plan Elle  https://benoitfernag-maker.github.io/plan-salle/elle/
+
+1. Installer sur les iPhones
+----------------------------
+- Dans SAFARI (pas Chrome), ouvre le lien de ton appli.
+- Bouton Partager (carré avec une flèche) → « Sur l'écran d'accueil » → Ajouter.
+- Ouvre l'appli une première fois avec du réseau : elle se garde en mémoire
+  et marche ensuite sans réseau (teste en mode avion).
+
+2. Premier lancement
+--------------------
+- Remplis le « Premier réglage » (taille, poids, âge, salle, date de début).
+- Dans « Mes paramètres », décoche le matériel absent de la salle.
+
+3. Au quotidien
+---------------
+- L'appli ouvre directement la séance du jour.
+- Touche « ⏱ Repos » à côté d'un exo pour lancer le minuteur.
+- Coche tes séances et note tes charges : tout reste sur le téléphone.
+
+4. Sauvegarde et mises à jour
+-----------------------------
+- Les données sont UNIQUEMENT sur le téléphone. Supprimer l'icône de l'écran
+  d'accueil efface les données : exporte avant (bouton « Exporter un fichier »).
+- Pour faire évoluer le plan : exporte, envoie le fichier à Claude avec tes notes.
+  Claude met à jour ce dépôt GitHub ; l'appli se met à jour au lancement suivant,
+  les données restent.

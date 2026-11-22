@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plan salle</title>
+<meta name="theme-color" content="#0C0C0B">
+<link rel="icon" type="image/png" href="lui/icon-192.png">
+<style>
+:root{--font:"Arial Narrow","Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-rows:1fr 1fr;min-height:100%}
+@media (min-width:700px){body{grid-template-rows:none;grid-template-columns:1fr 1fr}}
+a.side{display:flex;flex-direction:column;justify-content:center;gap:10px;padding:32px max(20px,env(safe-area-inset-left));text-decoration:none}
+a.side:focus-visible{outline:3px solid currentColor;outline-offset:-8px}
+.lui{background:#0C0C0B;color:#F2ECDD}
+.elle{background:#E8E9EE;color:#2A2230}
+.side img{width:72px;height:72px;border-radius:16px}
+.side h1{font-family:var(--font);font-size:2.4rem;line-height:1;margin:0;text-transform:uppercase;letter-spacing:.02em}
+.lui h1{color:#D4AF37}
+.elle h1{color:#86539A}
+.side p{margin:0;max-width:34ch;opacity:.85;font-size:15px;line-height:1.45}
+</style>
+</head>
+<body>
+  <a class="side lui" href="lui/">
+    <img src="lui/icon-180.png" alt="">
+    <h1>Plan Lui</h1>
+    <p>Noir et or. Ouvre-le dans Safari, puis Partager → « Sur l'écran d'accueil ».</p>
+  </a>
+  <a class="side elle" href="elle/">
+    <img src="elle/icon-180.png" alt="">
+    <h1>Plan Elle</h1>
+    <p>Mauve et argent. Ouvre-le dans Safari, puis Partager → « Sur l'écran d'accueil ».</p>
+  </a>
+</body>
+</html>
