@@ -1,6 +1,6 @@
 /* Service worker du Plan salle (elle) : garde l'appli en mémoire pour marcher sans réseau. */
 const PREFIX = "plan-salle-elle-";
-const V = PREFIX + "v2";
+const V = PREFIX + "v3";
 const FONTS = "plan-salle-fonts";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 

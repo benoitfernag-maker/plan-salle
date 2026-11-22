@@ -118,7 +118,25 @@ button,input,select,textarea{font:inherit;color:inherit}
 .lv-rest.go .l{color:inherit}
 .lv-next{min-height:60px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;font-weight:600;cursor:pointer;width:100%}
 .lv-next.hl{border:2px solid var(--accent);color:var(--accent)}
-.lv-end{display:grid;gap:14px;align-content:center;justify-items:center;text-align:center}
+.lv-end{display:grid;gap:14px;align-content:start;justify-items:center;text-align:center}
+.lv-focus{margin-top:10px;background:#3A2046;color:#F4EAF7;border-radius:14px;padding:12px 14px;display:grid;gap:8px;max-width:62ch}
+.lv-focus p{margin:0;font-size:14.5px;line-height:1.4}
+.lv-focus .k{display:block;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#CDB0DA;margin-bottom:2px}
+.lv-focus .kcal{font-family:var(--font-display);font-size:1.35rem;font-weight:700;color:#FFFFFF}
+.lv-drink{display:flex;align-items:center;justify-content:space-between;gap:10px;border-radius:12px;padding:9px 12px;background:#1F4E79;color:#EAF4FF;font-size:15px;border:0;width:100%;cursor:pointer;text-align:left}
+.lv-drink[hidden]{display:none}
+.lv-drink b{font-weight:700}
+.lv-drink .ok{flex:none;border:1px solid currentColor;border-radius:8px;padding:4px 9px;font-size:13px;white-space:nowrap}
+.live > *{min-width:0}
+.lv-recup{display:grid;gap:12px;width:100%;max-width:640px;text-align:left}
+.lv-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
+.lv-card h3{font-size:1.3rem;text-transform:uppercase}
+.lv-card ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:15px}
+.lv-card li::marker{color:var(--accent)}
+.lv-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 26px}
+.lv-stats div{display:grid;justify-items:center}
+.lv-stats b{font-family:var(--font-display);font-size:2.6rem;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.lv-stats span{font-size:13px;color:var(--muted)}
 input[type=date]{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:6px 8px;color:var(--ink)}
 
 /* En-tête */
@@ -340,6 +358,9 @@ const PROFILS = {
       "Après : petit-déj avec des protéines et un peu de sel.",
       "Les jours de muscu, prends ta vitamine C et ton collagène 30–60 min avant la séance plutôt qu'au réveil."],
     poidsHint:"Rythme visé : 0,5 à 1 % du poids par semaine. Juge sur la moyenne de la semaine, jamais sur une pesée.",
+    drinkEvery:8*60,
+    drinkMsg:"Quelques gorgées de ta boisson électrolytes",
+    recupBoire:["<b>Dans l'heure :</b> 500 ml à 1 L, avec des électrolytes ou une pincée de sel : tu perds beaucoup de sel en transpirant.","<b>Si tu t'es pesé avant/après :</b> 1,5 L par kilo perdu sur les heures qui suivent.","Un repas bien salé ce soir, pas de chasse au sel les jours d'entraînement."],
     cards:`
     <article class="card">
       <h3>Anti-abandon</h3>
@@ -449,6 +470,9 @@ const PROFILS = {
       "Si tu te sens faible à jeun : une banane ou un yaourt 20 min avant, c'est très bien aussi.",
       "Après : petit-déj avec des protéines."],
     poidsHint:"Ton poids va peu bouger quand tu te renforces : regarde surtout tes charges, ton tour de taille et comment tes vêtements tombent.",
+    drinkEvery:12*60,
+    drinkMsg:"Quelques gorgées d'eau",
+    recupBoire:["<b>Dans l'heure :</b> 400 à 600 ml d'eau.","<b>Si tu as beaucoup transpiré :</b> une pastille d'électrolytes ou un repas un peu salé.","Ensuite, bois régulièrement jusqu'au soir : urines claires = bien hydratée."],
     cards:`
     <article class="card">
       <h3>À deux, sans lâcher</h3>
@@ -1113,6 +1137,75 @@ function startTimer(sec){
 function stopTimer(){ clearInterval(T.iv); T.iv = null; clearTimeout(T.hideT); $("timer").hidden = true; }
 document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && T.iv) tick(); });
 
+/* ---------- Focus et calories (mode live) ---------- */
+const FOCUS = {
+  "s1-p":["Quadriceps, fessiers, mollets","Pousse le sol le plus vite possible, bras qui lancent, réception genoux souples dans l'axe."],
+  "s1-a":["Quadriceps, fessiers","Pousse à travers tout le pied, genoux qui suivent les orteils. Garde la tension en bas, sans rebondir."],
+  "s1-b":["Ischios, fessiers, bas du dos gainé","Pense « hanches en arrière », pas « dos qui descend ». Tu dois sentir l'étirement derrière les cuisses."],
+  "s1-c":["Quadriceps et fessier de la jambe avant","Le poids sur le talon avant, descends droit comme dans un ascenseur."],
+  "s1-d":["Ischios","Contracte fort en fin de mouvement, redescends en 2 secondes."],
+  "s1-e":["Mollets","Monte le plus haut possible sur la pointe, pause en haut, étirement complet en bas."],
+  "s1-f":["Abdos profonds, obliques","Le buste ne doit pas tourner : résiste à la poulie et respire normalement."],
+  "s2-p":["Épaules, pectoraux, triceps","L'élan part des jambes et des hanches, les bras finissent le mouvement."],
+  "s2-a":["Grand dorsal, milieu du dos, biceps","Tire les coudes vers les hanches, poitrine vers la barre, omoplates « rangées »."],
+  "s2-b":["Deltoïdes, triceps","Gainage serré, côtes rentrées, pas de cambrure : pousse droit vers le haut."],
+  "s2-c":["Milieu du dos, arrière d'épaule","Tire avec les coudes et serre les omoplates 1 seconde en fin de mouvement."],
+  "s2-d":["Deltoïdes moyens","Monte en écartant les coudes, pas les mains. Léger et contrôlé."],
+  "s2-e":["Arrière d'épaule, coiffe des rotateurs","Tire la corde vers le front en ouvrant les mains, pouces vers l'arrière."],
+  "s2-f":["Grip, trapèzes, gainage","Grand, épaules basses, petits pas rapides. Ne laisse pas la charge te tordre."],
+  "s3-p":["Fessiers, ischios, quadriceps","Tout part d'un coup de hanches explosif, les bras ne font que suivre."],
+  "s3-a":["Fessiers, ischios, dos, grip","Pousse le sol avec les jambes, barre collée au corps, dos gainé du début à la fin."],
+  "s3-b":["Fessiers","Menton rentré, bassin basculé en haut : serre fort les fessiers 1 seconde."],
+  "s3-c":["Quadriceps, fessiers","Descente contrôlée, ne verrouille pas complètement les genoux en haut."],
+  "s3-d":["Jambes complètes, cardio","Corps penché, pousse fort et vite : ça doit brûler."],
+  "s3-e":["Quadriceps","Contracte fort en haut, redescends lentement."],
+  "s3-f":["Abdos, gainage","Bassin rentré : va seulement aussi loin que ton bas du dos reste plat."],
+  "s4-a":["Pectoraux, triceps, avant d'épaule","Omoplates serrées sur le banc, pousse comme si tu éloignais le banc de toi."],
+  "s4-b":["Épaisseur du dos, biceps","Poitrine sortie, coudes vers l'arrière, pause d'une seconde."],
+  "s4-c":["Haut des pectoraux, épaules","Coudes à 45° du corps, contrôle la descente."],
+  "s4-d":["Grand dorsal","Tire avec les coudes, pas avec les mains."],
+  "s4-e":["Biceps, triceps","Coudes fixes collés au corps : seul l'avant-bras bouge."],
+  "s4-f":["Bas des trapèzes, coiffe des rotateurs","Léger, lent, sans hausser les épaules."],
+  "s4-g":["Cardio, corps entier","À fond pendant l'effort, vraiment facile pendant la récup."],
+  "s5-a":["Obliques, hanches","La rotation part des pieds et des hanches, pas des bras."],
+  "s5-b":["Fessiers, ischios","Coup de hanches sec, la kettlebell flotte, bras relâchés."],
+  "s5-c":["Jambes complètes, cardio","Corps penché, pousse fort et vite."],
+  "s5-d":["Jambes, dos","Buste droit sur le squat, coude vers la hanche sur le rowing."],
+  "s5-e":["Grip, trapèzes, gainage","Grand, épaules basses, petits pas rapides."],
+  "s5-f":["Cardio, corps entier","À fond pendant l'effort, vraiment facile pendant la récup."]
+};
+const MET = {power:6.0, main:5.0, acc:3.5, cond:7.0, interval:9.0, warm:4.0};
+const MET_CARDIO = {mix:6.0, tapis:6.0, velo:6.8, elliptique:5.0, rameur:7.0};
+const ZONES = {S1:"quadriceps, fessiers, ischios, mollets", S2:"dos, épaules, bras", S3:"fessiers, ischios, bas du dos", S4:"pectoraux, dos, bras", S5:"tout le corps"};
+function curWeight(){
+  const k = wkKey();
+  return num(wkPeek(k).poids) || Object.keys(weeks).sort().reverse().map(x => num(weeks[x].poids)).find(Boolean) || num(etat.params.poidsDepart) || null;
+}
+function stepMet(st){
+  if(st.kind === "cardio") return MET_CARDIO[etat.params.cardioMachine] || 6.0;
+  if(st.kind === "warm") return MET.warm;
+  return st.ex.interval ? MET.interval : (MET[st.ex.k] || 4.0);
+}
+function stepKcal(st){ const kg = curWeight(); return kg ? Math.round(stepMet(st) * kg * st.budget / 3600 / 5) * 5 : null; }
+function focusBox(st){
+  const kc = stepKcal(st);
+  let zone, cue;
+  if(st.kind === "exo"){ [zone, cue] = FOCUS[st.ex.id] || ["", ""]; }
+  else if(st.kind === "warm"){ zone = "Articulations et température du corps"; cue = "Monte progressivement : tu dois commencer à transpirer légèrement, sans te fatiguer."; }
+  else { zone = "Cœur et endurance (zone 2)"; cue = "Respiration contrôlée : tu dois pouvoir parler en phrases complètes."; }
+  return `<div class="lv-focus">
+    ${zone ? `<p><span class="k">Où concentrer le mouvement</span><b>${esc(zone)}.</b> ${esc(cue)}</p>` : ""}
+    <p><span class="k">Énergie sur l'atelier</span>${kc ? `<span class="kcal">≈ ${kc} kcal</span> <span style="opacity:.8">estimation sur ${fmtClock(st.budget)} pour ${fmtKg(curWeight())} kg</span>` : `<span style="opacity:.8">Renseigne ton poids dans les paramètres pour l'estimation.</span>`}</p>
+  </div>`;
+}
+function nextSessionText(){
+  const its = itemsOfWeek().filter(x => !isCardio(x.id));
+  const d = JOURS.indexOf(etat.layout[live.id]);
+  const nx = its.find(x => JOURS.indexOf(x.day) > d) || (its[0] ? Object.assign({}, its[0], {nextWeek:true}) : null);
+  if(!nx) return "";
+  return `${JOUR_LONG[nx.day]}${nx.nextWeek ? " prochain" : ""}, ${esc(LIB[nx.id].titre)}`;
+}
+
 /* ---------- Mode live ---------- */
 const LIVE_KEY = LS + "live";
 let live = null, liveIv = null, wakeLock = null;
@@ -1138,7 +1231,7 @@ function startLive(id){
   stopTimer();
   try{ if(!T.ac){ const AC = window.AudioContext || window.webkitAudioContext; if(AC) T.ac = new AC(); } if(T.ac && T.ac.state === "suspended") T.ac.resume(); }catch(e){}
   const now = Date.now();
-  live = {id, wk:wkKey(), mode:modeOf(id), step:0, set:0, t0:now, stepT0:now, restEnd:0, restDur:0, beeped:true, finished:false};
+  live = {id, wk:wkKey(), mode:modeOf(id), step:0, set:0, t0:now, stepT0:now, restEnd:0, restDur:0, beeped:true, finished:false, lastDrink:now, drinkNow:false};
   saveLive(); openLive();
 }
 function openLive(){
@@ -1157,12 +1250,33 @@ function renderLive(){
   const el = $("live");
   if(live.finished){
     const done = !!weeks[live.wk]?.done?.[live.id];
-    el.innerHTML = `<div class="lv-top"><span></span><span class="lv-pos"><b>Séance terminée</b></span><button class="lv-ico" data-action="live-close" aria-label="Fermer le mode live">✕</button></div>
-      <div class="lv-end" style="grid-row:2/6">
-        <p class="lv-lab">${esc(titleOf(live.id))}</p>
-        <p class="lv-big">${fmtClock((live.endAt || Date.now()) - live.t0 >= 0 ? ((live.endAt || Date.now()) - live.t0)/1000 : 0)}</p>
-        <p class="hint">Durée totale de la séance</p>
+    const dur = Math.max(0, ((live.endAt || Date.now()) - live.t0)/1000);
+    const kg = curWeight();
+    const sumB = steps.reduce((t,x) => t + x.budget, 0) || 1;
+    const metW = steps.reduce((t,x) => t + stepMet(x)*x.budget, 0) / sumB;
+    const kcal = kg ? Math.round(metW * kg * dur / 3600 / 10) * 10 : null;
+    const h = new Date(live.endAt || Date.now()).getHours();
+    const repas = isCardio(live.id) || h < 11 ? "Petit-déjeuner" : (h < 16 ? "Déjeuner" : "Dîner");
+    const prot = kg ? Math.round(kg * 0.4 / 5) * 5 : 30;
+    const viande = Math.round(prot / 0.23 / 10) * 10;
+    const zone = isCardio(live.id) ? "mollets, cuisses, hanches" : ZONES[live.id];
+    const nxt = nextSessionText();
+    const manger = isCardio(live.id)
+      ? [`<b>${repas} protéiné :</b> environ ${prot} g de protéines (œufs, skyr, fromage blanc, jambon…), des flocons d'avoine ou du pain complet, et un fruit.`, "Si tu as une séance de muscu plus tard dans la journée, garde un vrai repas 2 à 3 h avant."]
+      : [`<b>${repas} dans les 1 à 2 h :</b> environ ${prot} g de protéines, soit ≈ ${viande} g de viande ou de poulet (pesé cru).`, "<b>Un féculent de qualité</b> (riz, patate douce, pâtes, pommes de terre) pour recharger : c'est le meilleur moment de la journée pour lui.", "<b>Des légumes</b> pour le volume, les fibres et les minéraux."];
+    el.innerHTML = `<div class="lv-top"><span></span><span class="lv-pos"><b>Récupération</b>${esc(titleOf(live.id))}</span><button class="lv-ico" data-action="live-close" aria-label="Fermer le mode live">✕</button></div>
+      <div class="lv-end" style="grid-row:2/7">
+        <div class="lv-stats"><div><b>${fmtClock(dur)}</b><span>durée</span></div>${kcal ? `<div><b>≈ ${kcal}</b><span>kcal (estimation)</span></div>` : ""}</div>
         ${done ? `<p class="pill ok">Séance validée</p>` : `<button class="lv-main" data-action="live-validate">Valider la séance</button>`}
+        <div class="lv-recup">
+          <div class="lv-card"><h3>Récupération</h3><ul>
+            <li><b>Retour au calme :</b> 5 min de marche ou de vélo très léger, puis 5 min d'étirements doux (${esc(zone)}).</li>
+            ${isCardio(live.id) ? `<li><b>Temps de récup :</b> léger, tu peux faire ta muscu le même jour ou le lendemain.</li>` : `<li><b>Temps de récup :</b> 48 à 72 h avant de retravailler lourd ${esc(zone)}. Les courbatures des 2 jours suivants sont normales.</li>`}
+            ${nxt ? `<li><b>Prochaine séance de muscu :</b> ${nxt}.</li>` : ""}
+            <li><b>Sommeil :</b> 7 à 9 h cette nuit, c'est là que le muscle se reconstruit.</li></ul></div>
+          <div class="lv-card"><h3>À boire</h3><ul>${PRO.recupBoire.map(x => `<li>${x}</li>`).join("")}</ul></div>
+          <div class="lv-card"><h3>À manger</h3><ul>${manger.map(x => `<li>${x}</li>`).join("")}</ul></div>
+        </div>
         <button class="lv-next" data-action="live-close">Fermer</button>
       </div>`;
     return;
@@ -1170,12 +1284,12 @@ function renderLive(){
   const st = steps[live.step], last = live.step === n - 1;
   let name = st.name, sub = "", center = "", main = "";
   if(st.kind === "warm"){
-    sub = `<p class="lv-note">${esc(LIB[live.id].warm)}</p>`;
+    sub = `<p class="lv-note">${esc(LIB[live.id].warm)}</p>${focusBox(st)}`;
     center = `<p class="lv-lab">Échauffement</p><p class="lv-big" id="lv-warm">${fmtClock(st.budget)}</p><p class="hint">temps conseillé</p>`;
     main = `<button class="lv-main" data-action="live-next">C'est parti</button>`;
   } else if(st.kind === "cardio"){
     const mac = MACHINES[etat.params.cardioMachine] || MACHINES.mix;
-    sub = `<p class="lv-note">${esc(mac.l)} · zone 2, tu dois pouvoir parler.</p>`;
+    sub = `<p class="lv-note">${esc(mac.l)}. ${esc(mac.t)}</p>${focusBox(st)}`;
     center = `<p class="lv-lab">Temps restant</p><p class="lv-big" id="lv-cardio">${fmtClock(st.budget)}</p>`;
     main = `<button class="lv-main" data-action="live-finish">Terminer</button>`;
   } else {
@@ -1184,7 +1298,7 @@ function renderLive(){
     name = v.n;
     sub = `<div class="lv-sub"><span>${KIND_LABEL[ex.k]} · ${rpeOf(ex.k)}</span>
         ${ex.interval ? "" : `<label for="lv-ch">Charge <input type="text" inputmode="decimal" id="lv-ch" data-action="live-charge" data-ex="${ex.id}" value="${esc(val)}" placeholder="${prev ? esc("S"+prev.k.split("-W")[1]+" : "+prev.v) : "kg × reps"}"></label>`}</div>
-      ${v.note ? `<p class="lv-note">${esc(v.note)}</p>` : ""}`;
+      ${focusBox(st)}`;
     const doneAll = live.set >= st.sets;
     const cur = Math.min(live.set + 1, st.sets);
     center = `<p class="lv-lab">${ex.interval ? "Tour" : "Série"}</p>
@@ -1204,6 +1318,7 @@ function renderLive(){
     <div><h2 class="lv-name">${esc(name)}</h2>${sub}</div>
     <div class="lv-center">${center}</div>
     <div class="lv-atelier" id="lv-atelier">
+      <button class="lv-drink" id="lv-drink" data-action="live-drink" hidden><span><b>Hydratation :</b> ${esc(PRO.drinkMsg)}</span><span class="ok">C'est fait</span></button>
       <div class="lv-atl"><span>${st.kind === "cardio" ? "Séance" : "Temps sur l'atelier"}</span><span><b id="lv-atl-e">0:00</b> / max ${fmtClock(st.budget)}</span></div>
       <div class="lv-bar"><span id="lv-atl-bar"></span></div>
     </div>
@@ -1220,6 +1335,13 @@ function tickLive(){
   const bar = $("lv-atl-bar"); if(bar) bar.style.width = pct + "%";
   const at = $("lv-atelier"); if(at) at.classList.toggle("over", el > st.budget);
   const w = $("lv-warm"); if(w) w.textContent = fmtClock(st.budget - el);
+  const dr = $("lv-drink");
+  if(dr){
+    const every = st.kind === "cardio" ? 10*60 : PRO.drinkEvery;
+    const due = live.drinkNow || (now - (live.lastDrink || live.t0))/1000 >= every;
+    const okMoment = st.kind === "cardio" || st.kind === "warm" ? st.kind === "cardio" : (!!live.restEnd || live.set === 0 || live.set >= st.sets);
+    dr.hidden = !(due && okMoment);
+  }
   const c = $("lv-cardio"); if(c) c.textContent = fmtClock(st.budget - el);
   if(st.kind === "cardio" && el >= st.budget && !live.beeped){ live.beeped = true; saveLive(); beep(); }
   if(live.restEnd){
@@ -1235,8 +1357,10 @@ function tickLive(){
 function liveAction(a, el){
   if(!live) return;
   const steps = liveSteps(live), st = steps[live.step], now = Date.now();
-  if(a === "live-set"){
+  if(a === "live-drink"){ live.lastDrink = now; live.drinkNow = false; }
+  else if(a === "live-set"){
     live.set++;
+    if(live.set >= st.sets && (st.ex.k === "cond" || st.ex.interval)) live.drinkNow = true;
     if(live.set < st.sets && st.rest > 0){ live.restEnd = now + st.rest*1000; live.beeped = false; }
     else live.restEnd = 0;
   }
