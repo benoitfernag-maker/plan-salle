@@ -83,6 +83,45 @@ button,input,select,textarea{font:inherit;color:inherit}
 .timer button{border:1px solid currentColor;background:transparent;color:inherit;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
 .timer.done{background:var(--accent);color:var(--on-accent)}
 .io{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+/* Onglets et compléments */
+.apptabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:5px;position:sticky;top:calc(6px + env(safe-area-inset-top));z-index:10}
+.apptabs button{flex:1;border:0;background:transparent;color:var(--muted);font-weight:700;font-size:15px;padding:10px 8px;border-radius:8px;cursor:pointer}
+.apptabs button[aria-selected="true"]{background:var(--accent);color:var(--on-accent)}
+main[data-view="supp"] > section:not(#supp):not(.setup),main[data-view="supp"] > .phase{display:none}
+main[data-view="plan"] #supp{display:none}
+#supp{display:grid;gap:14px}
+.sp-today{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:grid;gap:14px}
+.sp-today h3,.sp-card h3{font-size:1.4rem;text-transform:uppercase}
+.sp-ctrl{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end}
+.sp-ctrl label{display:grid;gap:4px;font-size:13px;font-weight:600}
+.sp-ctrl input[type=time]{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;color:var(--ink);font-size:16px}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stepper button{width:40px;height:38px;border:0;background:var(--bg);color:var(--ink);font-size:20px;cursor:pointer}
+.stepper span{min-width:40px;text-align:center;font-family:var(--font-display);font-size:1.4rem;font-weight:700;font-variant-numeric:tabular-nums}
+.tl{list-style:none;margin:0;padding:0;display:grid}
+.tl li{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}
+.tl li:first-child{border-top:0}
+.tl .h{font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.1}
+.tl .h small{display:block;font-family:var(--font-body);font-size:11px;font-weight:600;color:var(--muted)}
+.tl .n{font-weight:700}
+.tl .d{color:var(--muted);font-size:14px}
+.tl .why{display:inline-block;margin-top:4px;font-size:12.5px;font-weight:600;border-radius:6px;padding:2px 7px;background:var(--bonus-soft);color:var(--bonus)}
+.tl .off{opacity:.55}
+.tl input[type=checkbox]{width:24px;height:24px;accent-color:var(--ok);margin-top:2px}
+.cafbar{display:grid;gap:6px}
+.cafbar .lv-bar span{background:var(--accent)}
+.cafbar.warn .lv-bar span{background:var(--warn)}
+.cafbar.warn p{color:var(--warn)}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.sp-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:grid;gap:10px;align-content:start}
+.sp-card ul{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px}
+.sp-card li::marker{color:var(--accent)}
+.sp-card .no li::marker{color:var(--warn)}
+.prod{display:grid;gap:2px;padding:8px 0;border-top:1px solid var(--line)}
+.prod:first-of-type{border-top:0}
+.prod a{color:var(--accent);font-weight:700;text-decoration:none}
+.prod a:hover{text-decoration:underline}
+.prod span{color:var(--muted);font-size:13px}
 /* Mode live */
 .live{position:fixed;inset:0;z-index:50;background:var(--bg);color:var(--ink);display:grid;grid-template-rows:auto auto 1fr auto auto auto;gap:14px;padding:calc(12px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));overflow-y:auto}
 .live[hidden]{display:none}
@@ -278,7 +317,7 @@ textarea{width:100%;min-height:110px;resize:vertical;line-height:1.45}
 </style>
 </head>
 <body>
-<main class="wrap">
+<main class="wrap" id="main" data-view="plan">
   <header class="top">
     <div>
       <p class="ver" id="ver"></p>
@@ -288,7 +327,12 @@ textarea{width:100%;min-height:110px;resize:vertical;line-height:1.45}
     <p class="save" id="save" data-s="loading" role="status">Connexion…</p>
   </header>
 
+  <nav class="apptabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-plan" data-action="tab" data-tab="plan" aria-selected="true">Entraînement</button>
+    <button role="tab" id="tab-supp" data-action="tab" data-tab="supp" aria-selected="false">Compléments</button>
+  </nav>
   <section class="setup" id="setup" aria-label="Premier réglage" hidden></section>
+  <section id="supp" aria-label="Compléments alimentaires"></section>
   <section class="status" id="status" aria-label="Semaine en cours"></section>
   <p class="phase" id="phase"></p>
   <section class="week" id="week" aria-label="Semaine type"></section>
@@ -523,6 +567,19 @@ const PROFILS = {
     }
   }
 };
+/* ---------- Plan de compléments (d'après le plan JSON v1 du 22/11/2026) ---------- */
+const SUPP_PRODUCTS = {
+  citrulline:{name:"L-Citrulline Kyowa en poudre", brand:"Nutrimuscle", url:"https://eu.nutrimuscle.com/fr/products/citrulline-l-citrulline-base-en-poudre", unit:"g", perScoop:1.5, role:"Congestion, endurance"},
+  creatine:{name:"Créatine Creapure en poudre", brand:"Nutrimuscle", url:"https://eu.nutrimuscle.com/fr/products/creatine-creapure-r-en-poudre", unit:"g", perScoop:1.2, role:"Force, puissance"},
+  caffeine:{name:"Active Caféine", brand:"Nutripure", url:"https://www.nutripure.fr/fr/musculation/379-active-cafeine.html", unit:"mg", mgPerCapsule:100, role:"Énergie, concentration"},
+  beetroot:{name:"Beet It Sport Nitrate 400", brand:"Beet It", url:"https://xmiles.co.uk/products/beet-it-shots", unit:"shot", nitrateMg:400, optional:true, role:"Endurance, efforts intermittents"}
+};
+const SUPP_RULES = {dailyMaxMg:400, singleDoseMaxMg:200, mgPerCoffee:100, noCafFrom:"19:00", train:{maxCoffees:2, lastCoffeeMin:240}, rest:{maxCoffees:4}, reduce:{withinMin:180, doseMg:100}};
+const SUPP_AVOID = ["Bêta-alanine (picotements, pas d'effet sur la séance du jour)", "Pre-workouts tout prêts en plus des cafés", "« Anciennes formules » vendues sur internet (DMAA)"];
+PROFILS.lui.supp = {sessionDefault:"18:00", coffeesDefault:4, cafDose:200, citrulline:{g:6, scoops:4}, creatine:{g:5, scoops:4, note:"4 doses = 4,8 g"},
+  notes:["Plan établi pour une séance à 18:00 et 3 à 4 cafés au travail : change l'heure ci-dessus selon ta séance du jour."]};
+PROFILS.elle.supp = {sessionDefault:"18:00", coffeesDefault:2, cafDose:100, citrulline:{g:6, scoops:4}, creatine:{g:3.6, scoops:3, note:"3 doses = 3,6 g"},
+  notes:["Même plan que ton copain, adapté à ton poids : caféine à 1 gélule (100 mg), 2 seulement si tu la tolères bien ; créatine à 3 doses.", "Enceinte, en projet de grossesse ou allaitante : pas de caféine en complément ni de nouveau complément sans avis médical."]};
 const PRO = PROFILS[PROFIL_ID] || PROFILS.lui;
 
 const DEFAULTS = {
@@ -1050,7 +1107,7 @@ function renderSetup(){
 }
 function renderAll(){
   const a = document.activeElement, fid = a && a.id, ss = a && typeof a.selectionStart === "number" ? [a.selectionStart,a.selectionEnd] : null;
-  renderSetup(); renderHeader(); renderStatus(); renderWeek(); renderDetail(); renderWeight(); renderNutri(); renderParams();
+  renderSetup(); renderHeader(); renderSupp(); renderStatus(); renderWeek(); renderDetail(); renderWeight(); renderNutri(); renderParams();
   const n = $("notes"); if(n && document.activeElement !== n) n.value = etat.notes || "";
   if(fid){ const el = $(fid); if(el && el !== document.activeElement){ el.focus({preventScroll:true}); if(ss && el.setSelectionRange) try{ el.setSelectionRange(ss[0],ss[1]); }catch(e){} } }
 }
@@ -1136,6 +1193,102 @@ function startTimer(sec){
 }
 function stopTimer(){ clearInterval(T.iv); T.iv = null; clearTimeout(T.hideT); $("timer").hidden = true; }
 document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && T.iv) tick(); });
+
+/* ---------- Compléments ---------- */
+const toMin = t => { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ""); return m ? (+m[1])*60 + (+m[2]) : null; };
+const fromMin = m => { m = ((Math.round(m) % 1440) + 1440) % 1440; return pad(Math.floor(m/60)) + ":" + pad(m%60); };
+function todayKeyDay(){ const t = new Date(); return {wk:isoKey(mondayOf(t)), d:ymd(t), day:JOURS[(t.getDay()+6)%7]}; }
+function suppDay(){
+  const T = todayKeyDay();
+  const w = weeks[T.wk] || (weeks[T.wk] = {done:{},modes:{},charges:{},poids:""});
+  w.supp = w.supp || {};
+  if(!w.supp[T.d]){
+    const its = itemsOfWeek().filter(x => x.day === T.day && !isCardio(x.id));
+    w.supp[T.d] = {type: its.length ? "train" : "rest", heure: PRO.supp.sessionDefault, cafes: 0, dernier: "", pris: {}};
+  }
+  return w.supp[T.d];
+}
+function suppPeek(){ const T = todayKeyDay(); const sd = weeks[T.wk]?.supp?.[T.d]; if(sd) return sd; const its = itemsOfWeek().filter(x => x.day === T.day && !isCardio(x.id)); return {type: its.length ? "train" : "rest", heure: PRO.supp.sessionDefault, cafes: 0, dernier: "", pris: {}}; }
+function caffeinePlan(sd){
+  const R = SUPP_RULES, sess = toMin(sd.heure) ?? toMin(PRO.supp.sessionDefault);
+  let dose = Math.min(PRO.supp.cafDose, R.singleDoseMaxMg), why = "";
+  if(sess >= toMin(R.noCafFrom)){ dose = 0; why = "Séance à 19:00 ou plus tard : pas de caféine, pour protéger ton sommeil."; }
+  else {
+    const last = toMin(sd.dernier);
+    if(last !== null && sess - last >= 0 && sess - last <= R.reduce.withinMin && dose > R.reduce.doseMg){ dose = R.reduce.doseMg; why = "Café bu moins de 3 h avant la séance : dose réduite à 100 mg."; }
+    const left = Math.max(0, R.dailyMaxMg - (sd.cafes||0)*R.mgPerCoffee);
+    if(dose > left){ dose = Math.floor(left/100)*100; why = dose ? `Plafond de ${R.dailyMaxMg} mg par jour, cafés compris : dose limitée à ${dose} mg.` : `Plafond de ${R.dailyMaxMg} mg par jour déjà atteint avec tes cafés : pas de caféine en plus.`; }
+  }
+  return {dose, caps: dose/100, why, sess};
+}
+function renderSupp(){
+  const el = $("supp"); if(!el) return;
+  const sd = suppPeek(), S = PRO.supp, P = SUPP_PRODUCTS, R = SUPP_RULES, T = todayKeyDay();
+  const train = sd.type === "train", cp = caffeinePlan(sd), sess = cp.sess;
+  const pris = sd.pris || {};
+  const row = (id, h, hsub, name, dose, extra, off) => `<li class="${off?"off":""}">
+      <div class="h">${h}${hsub ? `<small>${hsub}</small>` : ""}</div>
+      <div><p class="n">${name}</p><p class="d">${dose}</p>${extra||""}</div>
+      ${off ? "<span></span>" : `<input type="checkbox" id="sp-${id}" data-action="supp-pris" data-p="${id}" ${pris[id]?"checked":""} aria-label="${esc(name)} pris">`}
+    </li>`;
+  let tl = "";
+  if(train){
+    tl += row("beetroot", fromMin(sess-120), `${fromMin(sess-180)}–${fromMin(sess-60)}`, "Beet It Sport Nitrate 400 · optionnel", "1 shot (400 mg de nitrates)", "");
+    tl += row("citrulline", fromMin(sess-45), "45 min avant", "L-Citrulline", `${String(S.citrulline.g).replace(".",",")} g, soit ${S.citrulline.scoops} doses, dans 300 ml d'eau`, "");
+    tl += row("caffeine", fromMin(sess-45), "45 min avant", "Active Caféine", cp.dose ? `${cp.dose} mg, soit ${cp.caps} gélule${cp.caps>1?"s":""}` : "Pas de caféine aujourd'hui", cp.why ? `<span class="why">${esc(cp.why)}</span>` : "", !cp.dose);
+    tl += row("session", fromMin(sess), "séance", "Début de la séance", "", "", true);
+  }
+  tl += row("creatine", "Repas", "au choix", "Créatine Creapure", `${String(S.creatine.g).replace(".",",")} g (${S.creatine.note}), avec n'importe quel repas, tous les jours`, "");
+  const maxC = train ? R.train.maxCoffees : R.rest.maxCoffees;
+  const total = (sd.cafes||0)*R.mgPerCoffee + (train ? cp.dose : 0);
+  const pct = Math.min(100, total / R.dailyMaxMg * 100);
+  const lastBy = train && sess < toMin(R.noCafFrom) ? fromMin(sess - R.train.lastCoffeeMin) : null;
+  const tooMany = (sd.cafes||0) > maxC;
+  el.innerHTML = `
+    <div class="sp-today">
+      <div class="weeknav" style="justify-content:space-between">
+        <div><h3>Aujourd'hui</h3><p class="hint">${JOUR_LONG[T.day]} ${fmtDay(new Date())}</p></div>
+        <div class="seg" role="group" aria-label="Type de journée">
+          <button data-action="supp-type" data-v="train" aria-pressed="${train}">Jour d'entraînement</button>
+          <button data-action="supp-type" data-v="rest" aria-pressed="${!train}">Jour de repos</button>
+        </div>
+      </div>
+      <div class="sp-ctrl">
+        ${train ? `<label for="sp-heure">Heure de la séance<input type="time" id="sp-heure" data-action="supp-heure" value="${esc(sd.heure||S.sessionDefault)}"></label>` : ""}
+        <label>Cafés bus aujourd'hui<span class="stepper"><button data-action="supp-cafes" data-d="-1" aria-label="Un café de moins">−</button><span>${sd.cafes||0}</span><button data-action="supp-cafes" data-d="1" aria-label="Un café de plus">+</button></span></label>
+        ${train ? `<label for="sp-dernier">Heure du dernier café<input type="time" id="sp-dernier" data-action="supp-dernier" value="${esc(sd.dernier||"")}"></label>` : ""}
+      </div>
+      <div class="cafbar ${total > R.dailyMaxMg || tooMany ? "warn" : ""}">
+        <div class="lv-atl"><span>Caféine du jour (cafés ≈ ${R.mgPerCoffee} mg + gélules)</span><span><b>${total}</b> / ${R.dailyMaxMg} mg</span></div>
+        <div class="lv-bar"><span style="width:${pct}%"></span></div>
+        <p class="hint">${train ? `Jour d'entraînement : ${maxC} cafés au travail maximum${lastBy ? `, le dernier avant <b>${lastBy}</b> (4 h avant la séance)` : ""}.` : `Jour de repos : ${maxC} cafés maximum.`}${tooMany ? " Tu as dépassé le nombre de cafés prévu." : ""}</p>
+      </div>
+      <ol class="tl">${tl}</ol>
+      ${S.notes.map(n => `<p class="hint">${esc(n)}</p>`).join("")}
+    </div>
+    <div class="sp-grid">
+      <article class="sp-card"><h3>Les produits</h3>
+        ${Object.entries(P).map(([k,p]) => `<div class="prod"><a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a><span>${esc(p.brand)} · ${esc(p.role)}${p.optional ? " · optionnel" : ""}</span><span>${p.perScoop ? `1 dose = ${String(p.perScoop).replace(".",",")} g` : p.mgPerCapsule ? `1 gélule = ${p.mgPerCapsule} mg` : `1 shot = ${p.nitrateMg} mg de nitrates`}</span></div>`).join("")}
+      </article>
+      <article class="sp-card"><h3>Règles caféine</h3><ul>
+        <li>${R.dailyMaxMg} mg par jour au maximum, cafés compris (≈ ${R.mgPerCoffee} mg par expresso), et ${R.singleDoseMaxMg} mg maximum d'un coup.</li>
+        <li>Jour d'entraînement : ${R.train.maxCoffees} cafés au travail maximum, le dernier au moins 4 h avant la séance.</li>
+        <li>Café pris moins de 3 h avant la séance : gélules réduites à ${R.reduce.doseMg} mg.</li>
+        <li>Séance à partir de ${R.noCafFrom} : pas de caféine du tout.</li>
+        <li>Jour de repos : ${R.rest.maxCoffees} cafés maximum.</li></ul></article>
+      <article class="sp-card"><h3>À éviter</h3><ul class="no">${SUPP_AVOID.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+        <p class="hint">Un nouveau complément, un traitement en cours ou un souci de tension, de cœur ou de reins : demande l'avis de ton médecin ou de ton pharmacien.</p></article>
+    </div>`;
+}
+function setView(v){
+  const m = $("main"); if(!m) return;
+  m.dataset.view = v;
+  $("tab-plan").setAttribute("aria-selected", String(v === "plan"));
+  $("tab-supp").setAttribute("aria-selected", String(v === "supp"));
+  try{ localStorage.setItem(LS+"view", v); }catch(e){}
+  if(v === "supp") renderSupp();
+  window.scrollTo(0,0);
+}
 
 /* ---------- Focus et calories (mode live) ---------- */
 const FOCUS = {
@@ -1388,6 +1541,9 @@ document.addEventListener("click", ev => {
     ui.sel = el.dataset.id; renderAll();
     if(el.classList.contains("item-btn") && window.innerWidth < 1120){ const r = matchMedia("(prefers-reduced-motion: reduce)").matches; $("detail").scrollIntoView({behavior:r?"auto":"smooth",block:"start"}); }
   }
+  else if(a === "tab"){ setView(el.dataset.tab); }
+  else if(a === "supp-type"){ const sd = suppDay(); sd.type = el.dataset.v; queueSave(); renderSupp(); }
+  else if(a === "supp-cafes"){ const sd = suppDay(); sd.cafes = Math.max(0, Math.min(12, (sd.cafes||0) + Number(el.dataset.d))); queueSave(); renderSupp(); }
   else if(a === "live-start"){ startLive(el.dataset.id); }
   else if(a.startsWith("live-") && a !== "live-charge"){ liveAction(a, el); }
   else if(a === "timer"){ startTimer(Number(el.dataset.s)||90); }
@@ -1428,6 +1584,9 @@ document.addEventListener("change", ev => {
   else if(a === "taille"){ const v = num(el.value); if(v && v >= 120 && v <= 230){ etat.params.taille = Math.round(v); saveEtat(); } renderAll(); }
   else if(a === "salle"){ renderAll(); }
   else if(a === "debut"){ if(/^\d{4}-\d{2}-\d{2}$/.test(el.value)){ etat.debutBloc = el.value; saveEtat(); initWeek(); } renderAll(); }
+  else if(a === "supp-heure"){ if(toMin(el.value) !== null){ suppDay().heure = el.value; queueSave(); } renderSupp(); }
+  else if(a === "supp-dernier"){ suppDay().dernier = toMin(el.value) !== null ? el.value : ""; queueSave(); renderSupp(); }
+  else if(a === "supp-pris"){ const sd = suppDay(); sd.pris = sd.pris || {}; if(el.checked) sd.pris[el.dataset.p] = true; else delete sd.pris[el.dataset.p]; queueSave(); }
   else if(a === "import"){ const f = el.files && el.files[0]; if(f) doImport(f); el.value = ""; }
 });
 document.addEventListener("input", ev => {
@@ -1452,6 +1611,7 @@ $("cards").innerHTML = PRO.cards;
 selectToday();
 renderAll();
 setSave("ok");
+try{ if(localStorage.getItem(LS+"view") === "supp") setView("supp"); }catch(e){}
 try{
   const L = JSON.parse(localStorage.getItem(LIVE_KEY) || "null");
   if(L && L.id && Date.now() - L.t0 < 4*3600*1000 && (muscuIds(etat.params.nbMuscu).concat(cardioIds(etat.params.nbCardio))).includes(L.id)){ live = L; openLive(); }
