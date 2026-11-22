@@ -83,6 +83,42 @@ button,input,select,textarea{font:inherit;color:inherit}
 .timer button{border:1px solid currentColor;background:transparent;color:inherit;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
 .timer.done{background:var(--accent);color:var(--on-accent)}
 .io{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+/* Mode live */
+.live{position:fixed;inset:0;z-index:50;background:var(--bg);color:var(--ink);display:grid;grid-template-rows:auto auto 1fr auto auto auto;gap:14px;padding:calc(12px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));overflow-y:auto}
+.live[hidden]{display:none}
+.lv-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.lv-ico{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:20px;display:grid;place-items:center;cursor:pointer}
+.lv-pos{text-align:center;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.lv-pos b{display:block;color:var(--ink);font-size:15px}
+.lv-name{font-family:var(--font-display);font-size:clamp(2rem,9vw,3rem);font-weight:700;line-height:1;text-transform:uppercase;text-wrap:balance}
+.lv-sub{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;color:var(--muted);font-size:14px;margin-top:8px}
+.lv-sub input{width:120px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 9px;color:var(--ink);font-size:15px}
+.lv-note{color:var(--muted);font-size:14px;margin-top:6px;max-width:60ch}
+.lv-center{display:grid;align-content:center;justify-items:center;text-align:center;gap:4px}
+.lv-lab{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lv-big{font-family:var(--font-display);font-weight:700;font-size:clamp(4.5rem,24vw,7.5rem);line-height:.95;font-variant-numeric:tabular-nums;color:var(--accent)}
+.lv-big small{font-size:.45em;color:var(--muted)}
+.lv-reps{font-family:var(--font-display);font-weight:700;font-size:clamp(1.8rem,8vw,2.6rem);line-height:1}
+.lv-dots{display:flex;gap:8px;margin-top:10px}
+.lv-dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--accent)}
+.lv-dots i.on{background:var(--accent)}
+.lv-atelier{display:grid;gap:6px}
+.lv-atl{display:flex;justify-content:space-between;font-size:14px;font-variant-numeric:tabular-nums}
+.lv-atl b{font-size:16px}
+.lv-bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.lv-bar span{display:block;height:100%;width:0;background:var(--accent);border-radius:99px}
+.lv-atelier.over .lv-bar span{background:var(--warn)}
+.lv-atelier.over .lv-atl{color:var(--warn)}
+.lv-main{min-height:92px;border-radius:18px;border:0;background:var(--accent);color:var(--on-accent);font-family:var(--font-display);font-size:2rem;font-weight:700;text-transform:uppercase;cursor:pointer;width:100%}
+.lv-rest{min-height:92px;border-radius:18px;background:var(--surface);border:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px}
+.lv-rest .t{font-family:var(--font-display);font-size:3.2rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.lv-rest .l{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lv-rest button{min-width:64px;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:15px;cursor:pointer}
+.lv-rest.go{background:var(--accent);color:var(--on-accent)}
+.lv-rest.go .l{color:inherit}
+.lv-next{min-height:60px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;font-weight:600;cursor:pointer;width:100%}
+.lv-next.hl{border:2px solid var(--accent);color:var(--accent)}
+.lv-end{display:grid;gap:14px;align-content:center;justify-items:center;text-align:center}
 input[type=date]{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:6px 8px;color:var(--ink)}
 
 /* En-tête */
@@ -261,6 +297,7 @@ textarea{width:100%;min-height:110px;resize:vertical;line-height:1.45}
     <p class="hint" id="io-msg" role="status"></p>
   </section>
 </main>
+<section class="live" id="live" aria-label="Mode live" hidden></section>
 <div class="timer" id="timer" role="timer" aria-live="polite" hidden>
   <span class="t-label" id="t-label">Repos</span>
   <span class="t-time" id="t-time">0:00</span>
@@ -899,7 +936,7 @@ function renderDetail(){
     <div class="d-head">
       <div><p class="eyebrow">${eyebrow}</p><h2>${esc(titleOf(id))}</h2>
         <p class="d-meta">${JOUR_LONG[d]} ${fmtDay(date)} · ${esc(creneau(id))} · ≈ ${fmtMin(minutesOf(id,mode))}</p></div>
-      <div class="d-ctrl">${moveSel}${seg}${doneBtn}</div>
+      <div class="d-ctrl"><button class="btn primary" data-action="live-start" data-id="${id}">▶ Mode live</button>${moveSel}${seg}${doneBtn}</div>
     </div>
     ${body}`;
 }
@@ -1076,6 +1113,145 @@ function startTimer(sec){
 function stopTimer(){ clearInterval(T.iv); T.iv = null; clearTimeout(T.hideT); $("timer").hidden = true; }
 document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && T.iv) tick(); });
 
+/* ---------- Mode live ---------- */
+const LIVE_KEY = LS + "live";
+let live = null, liveIv = null, wakeLock = null;
+const fmtClock = sec => { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), x = sec%60; return (h ? h+":"+pad(m) : m) + ":" + pad(x); };
+function exoBudget(ex, s){
+  if(ex.interval) return Math.ceil((s*60 + 60)/60)*60;
+  const work = ex.uni ? 80 : (ex.k === "power" ? 20 : 40);
+  return Math.ceil((s*(work + ex.rest) + 60)/60)*60;
+}
+function liveSteps(st){
+  if(isCardio(st.id)) return [{kind:"cardio", name:"Cardio à jeun", budget:minutesOf(st.id, st.mode)*60}];
+  const steps = [{kind:"warm", name:"Échauffement", budget:(st.mode === "survie" ? 6 : 10)*60}];
+  visibleExos(st.id, st.mode).forEach(ex => {
+    const {v} = variantOf(ex), sets = setsFor(ex, v);
+    steps.push({kind:"exo", ex, v, sets, reps:v.r || ex.r, rest:ex.rest, budget:exoBudget(ex, sets)});
+  });
+  return steps;
+}
+function saveLive(){ try{ if(live) localStorage.setItem(LIVE_KEY, JSON.stringify(live)); else localStorage.removeItem(LIVE_KEY); }catch(e){} }
+async function keepAwake(){ try{ if("wakeLock" in navigator && document.visibilityState === "visible" && live) wakeLock = await navigator.wakeLock.request("screen"); }catch(e){} }
+function releaseAwake(){ try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock = null; }
+function startLive(id){
+  stopTimer();
+  try{ if(!T.ac){ const AC = window.AudioContext || window.webkitAudioContext; if(AC) T.ac = new AC(); } if(T.ac && T.ac.state === "suspended") T.ac.resume(); }catch(e){}
+  const now = Date.now();
+  live = {id, wk:wkKey(), mode:modeOf(id), step:0, set:0, t0:now, stepT0:now, restEnd:0, restDur:0, beeped:true, finished:false};
+  saveLive(); openLive();
+}
+function openLive(){
+  $("live").hidden = false; document.body.style.overflow = "hidden";
+  renderLive(); clearInterval(liveIv); liveIv = setInterval(tickLive, 250); keepAwake();
+}
+function closeLive(){
+  live = null; saveLive(); clearInterval(liveIv); liveIv = null; releaseAwake();
+  $("live").hidden = true; $("live").innerHTML = ""; document.body.style.overflow = "";
+  renderAll();
+}
+function renderLive(){
+  if(!live) return;
+  const steps = liveSteps(live), n = steps.length;
+  if(live.step >= n) live.step = n - 1;
+  const el = $("live");
+  if(live.finished){
+    const done = !!weeks[live.wk]?.done?.[live.id];
+    el.innerHTML = `<div class="lv-top"><span></span><span class="lv-pos"><b>Séance terminée</b></span><button class="lv-ico" data-action="live-close" aria-label="Fermer le mode live">✕</button></div>
+      <div class="lv-end" style="grid-row:2/6">
+        <p class="lv-lab">${esc(titleOf(live.id))}</p>
+        <p class="lv-big">${fmtClock((live.endAt || Date.now()) - live.t0 >= 0 ? ((live.endAt || Date.now()) - live.t0)/1000 : 0)}</p>
+        <p class="hint">Durée totale de la séance</p>
+        ${done ? `<p class="pill ok">Séance validée</p>` : `<button class="lv-main" data-action="live-validate">Valider la séance</button>`}
+        <button class="lv-next" data-action="live-close">Fermer</button>
+      </div>`;
+    return;
+  }
+  const st = steps[live.step], last = live.step === n - 1;
+  let name = st.name, sub = "", center = "", main = "";
+  if(st.kind === "warm"){
+    sub = `<p class="lv-note">${esc(LIB[live.id].warm)}</p>`;
+    center = `<p class="lv-lab">Échauffement</p><p class="lv-big" id="lv-warm">${fmtClock(st.budget)}</p><p class="hint">temps conseillé</p>`;
+    main = `<button class="lv-main" data-action="live-next">C'est parti</button>`;
+  } else if(st.kind === "cardio"){
+    const mac = MACHINES[etat.params.cardioMachine] || MACHINES.mix;
+    sub = `<p class="lv-note">${esc(mac.l)} · zone 2, tu dois pouvoir parler.</p>`;
+    center = `<p class="lv-lab">Temps restant</p><p class="lv-big" id="lv-cardio">${fmtClock(st.budget)}</p>`;
+    main = `<button class="lv-main" data-action="live-finish">Terminer</button>`;
+  } else {
+    const v = st.v, ex = st.ex, k = live.wk, val = weeks[k]?.charges?.[ex.id] || "";
+    const prev = prevCharge(ex.id);
+    name = v.n;
+    sub = `<div class="lv-sub"><span>${KIND_LABEL[ex.k]} · ${rpeOf(ex.k)}</span>
+        ${ex.interval ? "" : `<label for="lv-ch">Charge <input type="text" inputmode="decimal" id="lv-ch" data-action="live-charge" data-ex="${ex.id}" value="${esc(val)}" placeholder="${prev ? esc("S"+prev.k.split("-W")[1]+" : "+prev.v) : "kg × reps"}"></label>`}</div>
+      ${v.note ? `<p class="lv-note">${esc(v.note)}</p>` : ""}`;
+    const doneAll = live.set >= st.sets;
+    const cur = Math.min(live.set + 1, st.sets);
+    center = `<p class="lv-lab">${ex.interval ? "Tour" : "Série"}</p>
+      <p class="lv-big">${doneAll ? "✓" : cur}<small> / ${st.sets}</small></p>
+      <p class="lv-reps">${esc(st.reps)}${/\d$/.test(st.reps) ? " reps" : ""}</p>
+      <div class="lv-dots" aria-hidden="true">${Array.from({length:st.sets},(_,i)=>`<i class="${i < live.set ? "on" : ""}"></i>`).join("")}</div>`;
+    if(doneAll) main = `<button class="lv-main" data-action="${last ? "live-finish" : "live-next"}">${last ? "Terminer la séance" : "Exercice suivant →"}</button>`;
+    else if(live.restEnd) main = `<div class="lv-rest" id="lv-rest"><div><p class="l" id="lv-rest-l">Repos</p><p class="t" id="lv-rest-t">${fmtClock((live.restEnd - Date.now())/1000)}</p></div><div class="io"><button data-action="live-rest-plus">+15 s</button><button data-action="live-rest-skip">Passer</button></div></div>`;
+    else main = `<button class="lv-main" data-action="live-set">${ex.interval ? "Tour fait ✓" : "Série faite ✓"}</button>`;
+  }
+  el.innerHTML = `
+    <div class="lv-top">
+      <button class="lv-ico" data-action="live-prev" aria-label="Étape précédente" ${live.step === 0 ? "disabled" : ""}>‹</button>
+      <span class="lv-pos"><b>${st.kind === "exo" ? `Exercice ${live.step}/${n-1}` : (st.kind === "warm" ? "Avant de commencer" : "Cardio")}</b>Séance <span id="lv-total">${fmtClock((Date.now()-live.t0)/1000)}</span></span>
+      <button class="lv-ico" data-action="live-quit" aria-label="Quitter le mode live">✕</button>
+    </div>
+    <div><h2 class="lv-name">${esc(name)}</h2>${sub}</div>
+    <div class="lv-center">${center}</div>
+    <div class="lv-atelier" id="lv-atelier">
+      <div class="lv-atl"><span>${st.kind === "cardio" ? "Séance" : "Temps sur l'atelier"}</span><span><b id="lv-atl-e">0:00</b> / max ${fmtClock(st.budget)}</span></div>
+      <div class="lv-bar"><span id="lv-atl-bar"></span></div>
+    </div>
+    ${main}
+    ${st.kind === "exo" && live.set < st.sets ? `<button class="lv-next" data-action="${last ? "live-finish" : "live-next"}">${last ? "Terminer la séance" : "Exercice suivant →"}</button>` : `<span></span>`}`;
+  tickLive();
+}
+function tickLive(){
+  if(!live || live.finished) return;
+  const steps = liveSteps(live), st = steps[Math.min(live.step, steps.length-1)], now = Date.now();
+  const tot = $("lv-total"); if(tot) tot.textContent = fmtClock((now - live.t0)/1000);
+  const el = (now - live.stepT0)/1000, pct = Math.min(100, el/st.budget*100);
+  const e = $("lv-atl-e"); if(e) e.textContent = fmtClock(el);
+  const bar = $("lv-atl-bar"); if(bar) bar.style.width = pct + "%";
+  const at = $("lv-atelier"); if(at) at.classList.toggle("over", el > st.budget);
+  const w = $("lv-warm"); if(w) w.textContent = fmtClock(st.budget - el);
+  const c = $("lv-cardio"); if(c) c.textContent = fmtClock(st.budget - el);
+  if(st.kind === "cardio" && el >= st.budget && !live.beeped){ live.beeped = true; saveLive(); beep(); }
+  if(live.restEnd){
+    const left = (live.restEnd - now)/1000, t = $("lv-rest-t"), box = $("lv-rest");
+    if(left > 0){ if(t) t.textContent = fmtClock(left); }
+    else {
+      if(!live.beeped){ live.beeped = true; saveLive(); beep(); }
+      if(box){ box.classList.add("go"); $("lv-rest-l").textContent = "C'est reparti"; t.textContent = "Go"; }
+      if(left < -4){ live.restEnd = 0; saveLive(); renderLive(); }
+    }
+  }
+}
+function liveAction(a, el){
+  if(!live) return;
+  const steps = liveSteps(live), st = steps[live.step], now = Date.now();
+  if(a === "live-set"){
+    live.set++;
+    if(live.set < st.sets && st.rest > 0){ live.restEnd = now + st.rest*1000; live.beeped = false; }
+    else live.restEnd = 0;
+  }
+  else if(a === "live-rest-plus"){ if(live.restEnd){ live.restEnd = Math.max(live.restEnd, now) + 15000; live.beeped = false; } }
+  else if(a === "live-rest-skip"){ live.restEnd = 0; }
+  else if(a === "live-next"){ live.step = Math.min(live.step + 1, steps.length - 1); live.set = 0; live.restEnd = 0; live.stepT0 = now; }
+  else if(a === "live-prev"){ if(live.step > 0){ live.step--; live.set = 0; live.restEnd = 0; live.stepT0 = now; } }
+  else if(a === "live-finish"){ live.finished = true; live.endAt = now; live.restEnd = 0; releaseAwake(); }
+  else if(a === "live-validate"){ const w = weeks[live.wk] || (weeks[live.wk] = {done:{},modes:{},charges:{},poids:""}); w.done = w.done || {}; w.done[live.id] = true; persist(); }
+  else if(a === "live-quit"){ if(window.confirm("Quitter le mode live ? La séance en cours ne sera pas gardée.")) closeLive(); return; }
+  else if(a === "live-close"){ closeLive(); return; }
+  saveLive(); renderLive();
+}
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && live){ keepAwake(); tickLive(); } });
+
 /* ---------- Événements ---------- */
 document.addEventListener("click", ev => {
   const el = ev.target.closest("[data-action]"); if(!el) return;
@@ -1088,6 +1264,8 @@ document.addEventListener("click", ev => {
     ui.sel = el.dataset.id; renderAll();
     if(el.classList.contains("item-btn") && window.innerWidth < 1120){ const r = matchMedia("(prefers-reduced-motion: reduce)").matches; $("detail").scrollIntoView({behavior:r?"auto":"smooth",block:"start"}); }
   }
+  else if(a === "live-start"){ startLive(el.dataset.id); }
+  else if(a.startsWith("live-") && a !== "live-charge"){ liveAction(a, el); }
   else if(a === "timer"){ startTimer(Number(el.dataset.s)||90); }
   else if(a === "t-plus"){ if(T.iv){ T.end += 15000; tick(); } else startTimer(15); }
   else if(a === "t-stop"){ stopTimer(); }
@@ -1134,6 +1312,7 @@ document.addEventListener("input", ev => {
   else if(a === "poids"){ const w = wk(); w.poids = el.value.slice(0,10); saveWeek(900); }
   else if(a === "notes"){ etat.notes = el.value.slice(0,4000); saveEtat(800); }
   else if(a === "salle"){ etat.params.salle = el.value.slice(0,60); saveEtat(800); }
+  else if(a === "live-charge" && live){ const w = weeks[live.wk] || (weeks[live.wk] = {done:{},modes:{},charges:{},poids:""}); w.charges = w.charges || {}; const v = el.value.slice(0,40); if(v) w.charges[el.dataset.ex] = v; else delete w.charges[el.dataset.ex]; queueSave(900); }
 });
 
 /* ---------- Démarrage ---------- */
@@ -1149,6 +1328,11 @@ $("cards").innerHTML = PRO.cards;
 selectToday();
 renderAll();
 setSave("ok");
+try{
+  const L = JSON.parse(localStorage.getItem(LIVE_KEY) || "null");
+  if(L && L.id && Date.now() - L.t0 < 4*3600*1000 && (muscuIds(etat.params.nbMuscu).concat(cardioIds(etat.params.nbCardio))).includes(L.id)){ live = L; openLive(); }
+  else localStorage.removeItem(LIVE_KEY);
+}catch(e){}
 try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
 if("serviceWorker" in navigator){
   const hadController = !!navigator.serviceWorker.controller;
